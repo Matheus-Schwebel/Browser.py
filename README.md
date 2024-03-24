@@ -1,2 +1,3 @@
 # Browser.py
-The browser in python.
+O Navegador em Python.
+
