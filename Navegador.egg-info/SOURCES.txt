@@ -1,5 +1,0 @@
-setup.py
-Navegador.egg-info/PKG-INFO
-Navegador.egg-info/SOURCES.txt
-Navegador.egg-info/dependency_links.txt
-Navegador.egg-info/top_level.txt
