@@ -5,60 +5,10 @@ from PyQt5.QtWebEngineWidgets import *
 from PyQt5.QtGui import *
 from io import StringIO, BytesIO
 import tkinter as tk
-from tkinter import scrolledtext, messagebox
-import markdown
-from tabulate import tabulate
-import subprocess
 from googletrans import Translator
 import fitz  # Esta é a biblioteca PyMuPDF
 from PIL import Image
 import datetime
-# from variaveis import code_py_md
-from markdown_inter import MarkdownInterpreter
-from webgames import GameConsole
-
-class func_extensions:
- def extension_markdown(browser):
-    extensao = MarkdownInterpreter(browser_instance=browser)
-    browser_inst2 = Browser()
-    browser_inst2.tabs.addTab(extensao, "Markdown Interpreter")
-    browser_inst2.tabs.setCurrentWidget(extensao)
-
- def extension_game(browser):
-    extensao = GameConsole(browser=browser)
-    browser_instance = Browser()
-    browser_instance.tabs.addTab(extensao, "WebGames")
-    browser_instance.tabs.setCurrentWidget(extensao)
-         
-
-class Extensions(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.browser = Browser()
-
-        self.markdown_checkbox = QCheckBox("Habilitar Markdown Interpreter")
-        self.games_checkbox = QCheckBox("Habilitar WebGames")
-
-        self.confirm_button = QPushButton("Confirmar")
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.markdown_checkbox)
-        layout.addWidget(self.games_checkbox)
-        layout.addWidget(self.confirm_button)
-
-        self.confirm_button.clicked.connect(self.confirm_selection)
-
-        self.setLayout(layout)
-
-    def confirm_selection(self):
-        markdown_enabled = self.markdown_checkbox.isChecked()
-        games_enabled = self.games_checkbox.isChecked()
-
-        if markdown_enabled:
-            func_extensions.extension_markdown(browser=self.browser)
-        elif games_enabled:
-            func_extensions.extension_game(browser=self.browser)
 
 class TradutorApp(QWidget):
     def __init__(self):
@@ -177,11 +127,6 @@ class Browser(QMainWindow):
         open_url_btn.triggered.connect(self.navigate_to_url)
         self.navbar.addAction(open_url_btn)
 
-        open_url_btn = QAction('Gravador', self)
-        open_url_btn.setStatusTip('Abrir Gravador')
-        open_url_btn.triggered.connect(self.gravador)
-        self.navbar.addAction(open_url_btn)
-
         close_tab_btn = QAction('Fechar Guia', self)
         close_tab_btn.setStatusTip('Fechar a guia atual')
         close_tab_btn.triggered.connect(self.close_tab)
@@ -203,7 +148,6 @@ class Browser(QMainWindow):
         open_pdf_btn.triggered.connect(self.open_pdf_file)
         self.navbar.addAction(open_pdf_btn)
 
-
         open_python_console_btn = QAction('Console Python', self)
         open_python_console_btn.triggered.connect(self.open_python_console)
         self.navbar.addAction(open_python_console_btn)
@@ -212,11 +156,6 @@ class Browser(QMainWindow):
         tkinter_tab_btn = QAction('✔', self)
         tkinter_tab_btn.setStatusTip('Segurity InHouse Browser')
         tkinter_tab_btn.triggered.connect(self.segurity)
-        self.navbar.addAction(tkinter_tab_btn)
-
-        tkinter_tab_btn = QAction('GetWeb', self)
-        tkinter_tab_btn.setStatusTip('Abrir Console GetWeb')
-        tkinter_tab_btn.triggered.connect(self.getweb)
         self.navbar.addAction(tkinter_tab_btn)
 
         new_tab_btn = QAction('+', self)
@@ -229,28 +168,9 @@ class Browser(QMainWindow):
         history_btn.triggered.connect(self.show_history)
         self.navbar.addAction(history_btn)
 
-        games_btn = QAction('Games', self)
-        games_btn.setStatusTip('Visualizar Página de Games')
-        games_btn.triggered.connect(self.game)
-        self.navbar.addAction(games_btn)
-
-        extensoes = QAction('Extensões', self)
-        extensoes.setStatusTip('Visualizar Página de Extensoes')
-        extensoes.triggered.connect(self.extensions)
-        self.navbar.addAction(extensoes)
-
-
         # Sinal de atualização da barra de URL
         self.tabs.currentWidget().urlChanged.connect(self.update_urlbar)
         self.game_console = None
-        # self.game()
-    # ... (código anterior)
-        
-    def extensions(self):
-        self.extensoes = Extensions()
-
-        self.tabs.addTab(self.extensoes, "InHouse Web Store")
-        self.tabs.setCurrentWidget(self.extensoes)
 
     def show_history(self):
      with open("history.HISTORY", "r") as arquivo:
@@ -294,14 +214,7 @@ class Browser(QMainWindow):
             pdf_view = PDFViewer(file_name)
             self.tabs.addTab(pdf_view, f"PDF {file_name}")
             self.tabs.setCurrentWidget(pdf_view)
-        
-    def game(self):
-        # print("1")
-        self.game_console = GameConsole(browser=self)
-        # print("2")
-        self.tabs.addTab(self.game_console, "Games")
-        self.tabs.setCurrentWidget(self.game_console)
-    
+
     def segurity(self):
         self.root = tk.Tk()
         self.root.title("Segurity of Sites")
@@ -319,12 +232,8 @@ class Browser(QMainWindow):
 
     def traduzir(self):
         self.game_console = TradutorApp(browser=self)
-        # print("2")
         self.tabs.addTab(self.game_console, "Tradutor")
         self.tabs.setCurrentWidget(self.game_console)
-    
-    def gravador(self):
-        self.gravadorapp = subprocess.Popen(["py","M:/Arquivos/Programacao/Python/InHouse/Services/Gravador/Gravador1.0/Gravador.py"])
 
 
     def ir(self):
@@ -338,22 +247,11 @@ class Browser(QMainWindow):
             self.seguranca.config(text="Segurança básica")
         elif "inHouse://" in get:
             self.seguranca2.config(text="Segurança certificada por InHouse")
+        elif get == "":
+            self.seguranca2.config(text="Segurança certificada por InHouse")
         else:
             self.seguranca.config(text="Inseguro")
 
-    
-    def sitew3(self):
-        self.url_bar.setText("https://w3schools.com")
-        self.navigate_to_url()
-    
-    def getweb(self):
-        return GetWeb()
-
-    def search():
-        try:
-            subprocess.Popen(["py", "Search3.py"])
-        except Exception as e:
-            messagebox.showerror("Erro", f"Erro: {e}")
 
     def open_python_console(self):
         console_widget = PythonConsole(self)
@@ -396,7 +294,7 @@ class Browser(QMainWindow):
         return self.tabs.currentWidget()
 
     def navigate_home(self):
-        self.current_browser().setUrl(QUrl("file:///M:/Arquivos/Programacao/Python/InHouse/NewSearch/Search.html"))
+        self.current_browser().setUrl(QUrl("https://www.google.com/"))
 
     def navigate_to_url(self):
      now = datetime.datetime.now()
@@ -427,194 +325,6 @@ class Browser(QMainWindow):
     def update_urlbar(self, q):
         self.url_bar.setText(q.toString())
         self.url_bar.setCursorPosition(0)
-
-
-class GetWeb:
-# Dicionário para armazenar variáveis
-    variables = {}
-
-    def execute_markdown_code(self, markdown_code):
-        html_content = markdown.markdown(markdown_code)
-        with open("TransformMarkdown.html", "a") as arquivo:
-            arquivo.write(html_content)
-
-        browser = Browser()
-
-        browser.add_tab("file:///M:/Arquivos/Programacao/Python/NavegadorII/TransformMarkdown.html")
-        browser.showMaximized()
-
-
-    def transform(self, html):
-        with open("TransformMarkdown.html", "a") as arquivo:
-            arquivo.write(f"{html}\n")
-
-            browser_window = Browser()
-
-        # Add a new tab with the HTML content
-            browser_window.add_tab("file:///M:/Arquivos/Programacao/Python/NavegadorII/TransformMarkdown.html")
-
-        # Show the Browser window
-            browser_window.showMaximized()
-
-
-    def delete(self):
-        with open("TransformMarkdown.html", 'w') as arquivo:  # Ou 'wb' se for um arquivo binário
-            arquivo.write(tk.END, "")
-
-
-    def interpret_and_execute_get_commands(self, commands):
-        results = []
-        for command in commands:
-            if command:
-                result = self.execute_get_command(command)
-                results.append(result)
-        return results
-    
-    def create_table_markdown(self, table_content):
-        # Converte a tabela para markdown usando a biblioteca tabulate
-        table_data = [row.split("|") for row in table_content.strip().split("\n")]
-        headers = table_data[0]
-        rows = table_data[2:]
-        formatted_table = tabulate(rows, headers=headers, tablefmt="pipe")
-        return formatted_table
-
-    def execute_get_command(self, command):
-        global variables
-
-    # Implemente a interpretação real da sua linguagem "get" aqui
-        if command.startswith("$ "):
-            text_content1 = command[len("$ "):]
-            textmarkdown1 = f"# {text_content1}"
-            htmlm = markdown.markdown(textmarkdown1)
-
-            self.transform(html=htmlm)
-
-        elif command.startswith("reiniciar "):
-            self.delete()
-
-        elif command.startswith("$$ "):
-            text_content2 = command[len("$$ "):]
-            textmarkdown2 = f"## {text_content2}"
-            html2 = markdown.markdown(textmarkdown2)
-
-            self.transform(html=html2)
-    
-        elif command.startswith("$$$ "):
-            text_content3 = command[len("$$$ "):]
-            textmarkdown3 = f"### {text_content3}"
-            html3 = markdown.markdown(textmarkdown3)
-
-            self.transform(html=html3)
-
-        elif command.startswith("p "):
-            text_contentp = command[len("p "):]
-            textmarkdownp = f"{text_contentp}"
-            htmlp = markdown.markdown(textmarkdownp)
-
-            self.transform(html=htmlp)
-
-        elif command.startswith("m "):
-            text_contentm = command[len("m "):]
-            self.execute_markdown_code(text_contentm)
-    
-        elif command.startswith("$$$$ "):
-            text_content4 = command[len("$$$$ "):]
-            textmarkdown4 = f"#### {text_content4}"
-            html4 = markdown.markdown(textmarkdown4)
-
-            self.transform(html=html4)
-
-        elif command.startswith("$$$$$ "):
-            text_content5 = command[len("$$$$$ "):]
-            textmarkdown5 = f"##### {text_content5}"
-            html5 = markdown.markdown(textmarkdown5)
-
-            self.transform(html=html5)
-
-        elif command.startswith("$$$$$$ "):
-            text_content6 = command[len("$$$$$$ "):]
-            textmarkdown6 = f"###### {text_content6}"
-            html6 = markdown.markdown(textmarkdown6)
-
-            self.transform(html=html6)
-    
-        elif command.startswith("@! "):
-            return
-        # Adicionar suporte para listas
-        elif command.startswith("& "):
-            list_items = command[len("& "):].split(",")  # Ou qualquer separador desejado
-            list_markdown = "\n".join(f"- {item}" for item in list_items)
-            self.execute_markdown_code(list_markdown)
-
-        elif command.startswith("&$ "):
-            list_ = command[len("&$ ")].split("|")
-            with open("file.GET", "a") as file:
-                file.write(tk.END, list_)
-
-        # Adicionar suporte para links
-        elif command.startswith("link_custom "):
-            link_parts = command[len("link_custom "):].split(",", 1)
-            if len(link_parts) == 2:
-                link_description, link_url = map(str.strip, link_parts)
-                link_markdown = f"[{link_description}]({link_url})"
-                self.execute_markdown_code(link_markdown)
-            else:
-                messagebox.showerror("Erro", "Erro: Comando 'link_custom' requer descrição e URL separados por vírgula.")
-
-        elif command.startswith("> "):
-            quote_text = command[len("> "):]
-            markdown_code = f"> {quote_text}"
-            self.execute_markdown_code(markdown_code)
-
-    
-        else:
-            messagebox.showerror("Erro", "Erro: Função não existente.")
-    
-    def get(self):
-        commands = [
-            self.entry1.get(),
-            self.entry2.get(),
-            self.entry3.get(),
-            self.entry4.get(),
-            self.entry5.get()
-        ]
-
-        results = self.interpret_and_execute_get_commands(commands)
-
-        for result in results:
-            print(f"Resultado: {result}")
-
-    def __init__(self):
-        self.janela = tk.Tk()
-        self.janela.title("Get Language Interpreter")
-
-# Dicionário para armazenar variáveis
-        variables = {}
-
-        self.label1 = tk.Label(self.janela, text="Get Language Interpreter")
-        self.label1.pack()
-
-        self.entry1 = tk.Entry(self.janela)
-        self.entry2 = tk.Entry(self.janela)
-        self.entry3 = tk.Entry(self.janela)
-        self.entry4 = tk.Entry(self.janela)
-        self.entry5 = tk.Entry(self.janela)
-
-        
-        self.entry1.pack()
-        self.entry2.pack()
-        self.entry3.pack()
-        self.entry4.pack()
-        self.entry5.pack()
-
-        button = tk.Button(self.janela, text="Lançar GetWeb", command=self.get)
-        button.pack()
-
-        button2 = tk.Button(self.janela, text="Reiniciar GetWeb", command=self.delete)
-        button2.pack()
-
-        self.janela.mainloop()
-
 
 class PythonConsole(QWidget):
     def __init__(self, browser):
