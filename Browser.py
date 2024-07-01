@@ -7,8 +7,13 @@ from io import StringIO, BytesIO
 import tkinter as tk
 from googletrans import Translator
 import fitz  # Esta é a biblioteca PyMuPDF
-from PIL import Image
+from PIL import Image # Esta é a biblioteca Pillow
 import datetime
+from urllib.parse import urlparse
+from OpenSSL import crypto
+import ssl
+import socket
+import requests
 
 class TradutorApp(QWidget):
     def __init__(self):
@@ -111,6 +116,7 @@ class Browser(QMainWindow):
         self.url_bar = QLineEdit()
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         self.navbar.addWidget(self.url_bar)
+        self.url_bar.insert("file:///M:/Arquivos/Programacao/Python/InHouse/Search/Search.html")
 
         # Botão de casa
         home_btn = QAction('Início', self)
@@ -172,6 +178,11 @@ class Browser(QMainWindow):
         self.tabs.currentWidget().urlChanged.connect(self.update_urlbar)
         self.game_console = None
 
+    def traduzir(self):
+        self.game_console = TradutorApp(browser=self)
+        self.tabs.addTab(self.game_console, "Tradutor")
+        self.tabs.setCurrentWidget(self.game_console)
+
     def show_history(self):
      with open("history.HISTORY", "r") as arquivo:
         history = arquivo.read()
@@ -216,42 +227,102 @@ class Browser(QMainWindow):
             self.tabs.setCurrentWidget(pdf_view)
 
     def segurity(self):
-        self.root = tk.Tk()
-        self.root.title("Segurity of Sites")
+        self.segurityroot = tk.Tk()
+        self.segurityroot.title("Segurança de Sites")
 
-        self.button = tk.Button(self.root, text="Ver segurança", command=self.ir)
+        self.button = tk.Button(self.segurityroot, text="Ver segurança", command=self.verificar_seguranca)
         self.button.pack()
 
-        self.seguranca = tk.Label(self.root, text="")
+        self.seguranca = tk.Label(self.segurityroot, text="")
         self.seguranca.pack()
 
-        self.seguranca2 = tk.Label(self.root, text="")
-        self.seguranca2.pack()
+        self.ssl = tk.Label(self.segurityroot, text="Certificado SSL:")
+        self.ssl.pack()
 
-        self.root.mainloop()
+        self.ssl2 = tk.Label(self.segurityroot, text="")
+        self.ssl2.pack()
 
-    def traduzir(self):
-        self.game_console = TradutorApp(browser=self)
-        self.tabs.addTab(self.game_console, "Tradutor")
-        self.tabs.setCurrentWidget(self.game_console)
+        self.red = tk.Label(self.segurityroot, text="Redirecionamentos:")
+        self.red.pack()
 
+        self.red2 = tk.Label(self.segurityroot, text="")
+        self.red2.pack()
 
-    def ir(self):
-        get = self.url_bar.text()  # Get the text from the QLineEdit
+        self.cabe = tk.Label(self.segurityroot, text="Cabeçalhos:")
+        self.cabe.pack()
 
-        if "file:///" in get:
+        self.cabe2 = tk.Label(self.segurityroot, text="")
+        self.cabe2.pack()
+
+        self.segurityroot.mainloop()
+
+    def verificar_certificado_ssl(self, url):
+        try:
+            hostname = urlparse(url).hostname
+            port = 443
+            context = ssl.create_default_context()
+
+            with socket.create_connection((hostname, port)) as sock:
+                with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+                    cert = ssock.getpeercert()
+                    cert_subject = dict(x[0] for x in cert['subject'])
+                    cert_issuer = dict(x[0] for x in cert['issuer'])
+
+                    self.ssl2.config(text=f"Certificado válido\nSubject: {cert_subject}\nIssuer: {cert_issuer}")
+        except Exception as e:
+            self.ssl2.config(text=f"Erro ao verificar certificado SSL: {str(e)}")
+
+    def verificar_redirecionamentos(self, url):
+        try:
+            response = requests.get(url, allow_redirects=True)
+            if response.history:
+                self.red2.config(text=f"Redirecionamentos detectados: {[r.url for r in response.history]}")
+            else:
+                self.red2.config(text="Nenhum redirecionamento detectado")
+        except Exception as e:
+            self.red2.config(text=f"Erro ao verificar redirecionamentos: {str(e)}")
+
+    def verificar_cabecalhos(self, url):
+        try:
+            response = requests.get(url)
+            headers = response.headers
+            seguranca_headers = []
+
+            if 'Strict-Transport-Security' in headers:
+                seguranca_headers.append('HSTS Ativado')
+            if 'Content-Security-Policy' in headers:
+                seguranca_headers.append('CSP Ativado')
+            if 'X-Frame-Options' in headers:
+                seguranca_headers.append('X-Frame-Options Ativado')
+
+            if seguranca_headers:
+                self.cabe2.config(text=f"Cabeçalhos de Segurança: {', '.join(seguranca_headers)}")
+            else:
+                self.cabe2.config(text="Nenhum cabeçalho de segurança detectado")
+        except Exception as e:
+            self.cabe2.config(text=f"Erro ao verificar cabeçalhos: {str(e)}")
+
+    def verificar_seguranca(self):
+        url = self.url_bar.text()  # Obtém o texto do QLineEdit
+        self.seguranca.config(text="")
+        self.red2.config(text="")
+        self.ssl2.config(text="")
+
+        if not url:
+            self.seguranca.config(text="URL vazia")
+            return
+
+        # Verificação do esquema
+        parsed_url = urlparse(url)
+        scheme = parsed_url.scheme
+
+        if scheme == "file":
             self.seguranca.config(text="Arquivo ou Ficheiro")
-        elif "https://" in get:
-            self.seguranca.config(text="Segurança média")
-        elif "http://" in get:
-            self.seguranca.config(text="Segurança básica")
-        elif "inHouse://" in get:
-            self.seguranca2.config(text="Segurança certificada por InHouse")
-        elif get == "":
-            self.seguranca2.config(text="Segurança certificada por InHouse")
-        else:
-            self.seguranca.config(text="Inseguro")
 
+        else:
+            self.verificar_certificado_ssl(url)
+            self.verificar_redirecionamentos(url)
+            self.verificar_cabecalhos(url)
 
     def open_python_console(self):
         console_widget = PythonConsole(self)
@@ -408,5 +479,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     QApplication.setApplicationName("InHouse Browser")
     window = Browser()
+    window.showMaximized()
+    app.exec_()
     window.showMaximized()
     app.exec_()
