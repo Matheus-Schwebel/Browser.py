@@ -15,6 +15,7 @@ import ssl
 import socket
 import requests
 
+
 class TradutorApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -69,6 +70,7 @@ class TradutorApp(QWidget):
         self.label4.setText(f'Texto original ({idioma_origem}): {texto}')
         self.label5.setText(f'Texto traduzido para {idioma_destino}: {texto_traduzido}')
 
+
 class Browser(QMainWindow):
     def __init__(self):
         print("Console do Desenvolvedor")
@@ -77,10 +79,14 @@ class Browser(QMainWindow):
 
         # Lista para armazenar as guias abertas
         self.tabs = QTabWidget()
+        self.tabs.setTabsClosable(True)
+        self.tabs.tabCloseRequested.connect(self.close_tab)
         self.setCentralWidget(self.tabs)
 
+        self.add_plus_button()
+        
         # Abre a primeira guia
-        self.add_tab("file:///M:/Arquivos/Programacao/Python/InHouse/Search/Search.html")
+        self.add_tab("https://www.google.com")
 
         self.history = []
 
@@ -116,7 +122,7 @@ class Browser(QMainWindow):
         self.url_bar = QLineEdit()
         self.url_bar.returnPressed.connect(self.navigate_to_url)
         self.navbar.addWidget(self.url_bar)
-        self.url_bar.insert("file:///M:/Arquivos/Programacao/Python/InHouse/Search/Search.html")
+        self.url_bar.insert("https://www.google.com")
 
         # Botão de casa
         home_btn = QAction('Início', self)
@@ -175,8 +181,16 @@ class Browser(QMainWindow):
         self.navbar.addAction(history_btn)
 
         # Sinal de atualização da barra de URL
-        self.tabs.currentWidget().urlChanged.connect(self.update_urlbar)
+        self.current_browser().urlChanged.connect(self.update_urlbar)
         self.game_console = None
+
+    def add_plus_button(self):
+        # Cria o botão "+" e adiciona ao QTabWidget
+        plus_button = QPushButton('+')
+        plus_button.setFixedSize(25, 25)
+        plus_button.clicked.connect(self.add_empty_tab)
+        self.tabs.setCornerWidget(plus_button, Qt.TopRightCorner)
+
 
     def traduzir(self):
         self.game_console = TradutorApp(browser=self)
@@ -184,37 +198,37 @@ class Browser(QMainWindow):
         self.tabs.setCurrentWidget(self.game_console)
 
     def show_history(self):
-     with open("history.HISTORY", "r") as arquivo:
-        history = arquivo.read()
+        with open("history.HISTORY", "r") as arquivo:
+            history = arquivo.read()
 
-    # Carregar o conteúdo CSS
-     with open("style.css", "r") as css_file:
-        css_content = css_file.read()
+        # Carregar o conteúdo CSS
+        with open("style.css", "r") as css_file:
+            css_content = css_file.read()
 
-    # Substituir quebras de linha por <br> tags
-     history_html = "<br>".join(history.splitlines())
+        # Substituir quebras de linha por <br> tags
+        history_html = "<br>".join(history.splitlines())
 
-    # Criar o HTML com o histórico e o CSS
-     html_content = f"""<!DOCTYPE html>
-    <html>
-    <head>
-        <title>History</title>
-        <style>
-            {css_content}
-        </style>
-    </head>
-    <body>
-        <div class="history">
-            <h1>History</h1>
-        </div>
-        <p>{history_html}</p>
-    </body>
-    </html>"""
+        # Criar o HTML com o histórico e o CSS
+        html_content = f"""<!DOCTYPE html>
+        <html>
+        <head>
+            <title>History</title>
+            <style>
+                {css_content}
+            </style>
+        </head>
+        <body>
+            <div class="history">
+                <h1>History</h1>
+            </div>
+            <p>{history_html}</p>
+        </body>
+        </html>"""
 
-    # Criar uma nova instância de Browser para exibir o histórico
-     browser_window = Browser()
-     browser_window.add_tab(f"data:text/html,{html_content}")
-     browser_window.showMaximized()
+        # Criar uma nova instância de Browser para exibir o histórico
+        browser_window = Browser()
+        browser_window.add_tab(f"data:text/html,{html_content}")
+        browser_window.showMaximized()
 
     def open_pdf_file(self):
         options = QFileDialog.Options()
@@ -479,7 +493,5 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     QApplication.setApplicationName("InHouse Browser")
     window = Browser()
-    window.showMaximized()
-    app.exec_()
     window.showMaximized()
     app.exec_()
